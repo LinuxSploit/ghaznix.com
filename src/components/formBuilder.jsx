@@ -10,13 +10,27 @@ import ToggleSwitch from '../utils/switch';
 import Slidesbar from '../utils/slidesbar';
 import ColorSlider from '../utils/colorslider';
 import AddSlideModal from '../utils/addmodal';
-import SlidesComponent from '../utils/slideComponent';
+import Slide from '../utils/slideComponent';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { AnimatePresence } from 'framer-motion';
+import { span } from 'framer-motion/client';
 
 const FormBuilder = () => {
-    const [SelectedSlide,setSelectedSlide] = useState(null) // -1 = intro , -2 = outro , else slide index
+    const [SelectedSlide, setSelectedSlide] = useState(null) // -1 = intro , -2 = outro , else slide index
+    const [SearchSlideText, SetSearchSlideText] = useState("")
     const [StartSlide, SetStartSlide] = useState(null)
     const [Slides, SetSlides] = useState([])
+    const [FilteredSlides, SetFilteredSlides] = useState([...Slides])
     const [EndSlide, SetEndSlide] = useState(null)
+
+    useEffect(() => {
+        SetFilteredSlides(SearchSlideText 
+            ? Slides.filter(slide => slide.heading.toLowerCase().includes(SearchSlideText.toLowerCase())) 
+            : Slides
+        );
+    }, [Slides, SearchSlideText]);
+    
 
     const [isContainerVisible, setContainerVisible] = useState(false);
     const containerRef = useRef(null);
@@ -32,12 +46,18 @@ const FormBuilder = () => {
         }
     };
 
+    const moveSlide = (fromIndex, toIndex) => {
+        const updatedSlides = Array.from(Slides);
+        const [movedSlide] = updatedSlides.splice(fromIndex, 1);
+        updatedSlides.splice(toIndex, 0, movedSlide);
+        SetSlides(updatedSlides);
+    };
 
     return (
         <div className='h-screen text-sm' onClick={closeAddContainer}>
             {/* topbar */}
             <div className='h-14 flex border-b border-gray-200'>
-                <div className='flex flex-1 items-center'>
+                <div className='flex flex-1 items-center' onClick={(e) => SetSlides([Slides[0], Slides[1]])}>
                     <img className='h-12' src="https://placehold.co/120x50/white/black?text=Ghaznix" />
                 </div>
                 <div className='flex flex-1 justify-center items-center font-medium'>
@@ -116,13 +136,13 @@ const FormBuilder = () => {
                             </svg>
 
 
-                            <input type="search" className="w-full ps-2 py-1 text-base text-gray-800 rounded-full focus:outline-none"
+                            <input type="search" value={SearchSlideText} onChange={(e)=>{SetSearchSlideText(e.target.value)}} className="w-full ps-2 py-1 text-base text-gray-800 rounded-full focus:outline-none"
                                 placeholder="search" x-model="search" />
                         </div>
 
-                    
+
                         {/* starting item */}
-                        {StartSlide && <div onClick={(e)=>setSelectedSlide(-1)} className={`h-14 ${SelectedSlide==-1 && "bg-gray-50"} hover:bg-gray-50 relative border-gray-200 flex justify-between items-center select-none`}>
+                        {StartSlide && <div onClick={(e) => setSelectedSlide(-1)} className={`h-14 ${SelectedSlide == -1 && "bg-gray-50"} hover:bg-gray-50 relative border-gray-200 flex justify-between items-center select-none`}>
                             {/* add imagge */}
                             <div className='flex items-center'>
                                 <svg className='px-2 h-9' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#fb6f92" fill='#fb6f92' strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> <path d="M12.33 17.45C12.15 17.51 11.84 17.51 11.66 17.45C10.1 16.92 6.59998 14.69 6.59998 10.91C6.59998 9.24 7.93998 7.89001 9.59998 7.89001C10.58 7.89001 11.45 8.36001 12 9.10001C12.54 8.37001 13.42 7.89001 14.4 7.89001C16.06 7.89001 17.4 9.24 17.4 10.91C17.4 14.69 13.9 16.92 12.33 17.45Z" fill='#ffffffaa' strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
@@ -140,31 +160,33 @@ const FormBuilder = () => {
 
 
 
-                        {Slides.map((slide, index) => {
-                            return <div key={index}  onClick={(e)=>setSelectedSlide(index)} className={`h-14 ${SelectedSlide == index && "bg-gray-50"} hover:bg-gray-50 relative flex justify-between items-center select-none`}>
-                                <div className='flex items-center'>
-                                    <img src={slide._icon} className='px-2 h-9' />
-                                    <div>
-                                        <div className='font-medium text-sm text-gray-500'>{slide.label}</div>
-                                        <div className='text-xs text-gray-400'>{slide.heading}</div>
-                                    </div>
-                                </div>
-                                <Option label={""} items={[
-                                    { label: "item1", link: "link1" },
-                                    { label: "item2", link: "link2" },
-                                    { label: "item3", link: "link3" },
-                                ]} />
+                        {/* Draggable Slides List */}
+                        <DndProvider backend={HTML5Backend}>
+                            <div className='dragable-slides transition-opacity duration-1000'>
+                                
+                                {FilteredSlides.length==0?
+                                    <div className="text-gray-500 text-center w-full py-2 select-none">No results found.</div>
+                                :
+                                FilteredSlides.map((slide, index) => (
+                                    <Slide
+                                        key={index}
+                                        index={index}
+                                        slide={slide}
+                                        moveSlide={moveSlide}
+                                        setSlides={SetSlides}
+                                        setSelectedSlide={setSelectedSlide}
+                                        SelectedSlide={SelectedSlide}
+                                    />
+                                ))}
                             </div>
-                        })}
-
-                        {/* {Slides.length != 0 && <SlidesComponent Slides={Slides} />} */}
+                        </DndProvider>
 
 
 
                     </div>
 
                     {/* closing item */}
-                    {EndSlide && <div onClick={(e)=>setSelectedSlide(-2)} className={`h-14 ${SelectedSlide == -2 && "bg-gray-50"} hover:bg-gray-50 border-t border-gray-200 relative flex justify-between items-center select-none`}>
+                    {EndSlide && <div onClick={(e) => setSelectedSlide(-2)} className={`h-14 ${SelectedSlide == -2 && "bg-gray-50"} hover:bg-gray-50 border-t border-gray-200 relative flex justify-between items-center select-none`}>
                         {/* add imagge */}
                         <div className='flex items-center'>
                             <svg className='px-2 h-9' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#fb6f92" fill='#fb6f92' strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> <path d="M12.33 17.45C12.15 17.51 11.84 17.51 11.66 17.45C10.1 16.92 6.59998 14.69 6.59998 10.91C6.59998 9.24 7.93998 7.89001 9.59998 7.89001C10.58 7.89001 11.45 8.36001 12 9.10001C12.54 8.37001 13.42 7.89001 14.4 7.89001C16.06 7.89001 17.4 9.24 17.4 10.91C17.4 14.69 13.9 16.92 12.33 17.45Z" fill='#ffffffaa' strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
@@ -183,7 +205,7 @@ const FormBuilder = () => {
                 </div>
 
                 {/* main window */}
-                <div className='' style={{ width: 'calc(100% - 12rem - 12rem - 3.5rem)' }}>
+                <div className='-z-50' style={{ width: 'calc(100% - 12rem - 12rem - 3.5rem)' }}>
 
                     {/* Main content */}
                     <div className='bg-gray-200 p-10 flex justify-center items-center' style={{ height: 'calc(100%)' }}>
