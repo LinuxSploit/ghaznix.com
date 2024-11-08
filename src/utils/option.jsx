@@ -1,50 +1,77 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Menu, MenuButton, MenuItem } from '@headlessui/react';
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import {
+  ArchiveBoxXMarkIcon,
+  ChevronDownIcon,
+  PencilIcon,
+  Square2StackIcon,
+  TrashIcon,
+} from '@heroicons/react/20/solid';
 
-export default function Option({ label, items }) {
-    const menuRef = useRef(null);
-    const [isUpward, setIsUpward] = useState(false);
+export default function OptionsDropdown({ onEdit, onDuplicate, onArchive, onDelete }) {
+  return (
+    <div className="relative text-right">
+      <Menu>
+        {/* Menu Button */}
+        <MenuButton className="inline-flex items-center gap-2 rounded-md px-1.5 text-sm font-semibold text-gray-800 border-gray-200 focus:outline-none">
+          <ChevronDownIcon className="h-5 w-5 text-gray-600" />
+        </MenuButton>
 
-    // Adjust dropdown direction based on available space
-    useEffect(() => {
-        if (menuRef.current) {
-            const menuRect = menuRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - menuRect.bottom;
-            const spaceAbove = menuRect.top;
-
-            setIsUpward(spaceBelow < 150 && spaceAbove > spaceBelow);
-        }
-    }, []);
-
-    return (
-        <div
-            className="absolute h-full w-full flex justify-end items-center"
-            ref={menuRef}
+        {/* Menu Items */}
+        <MenuItems
+          className="z-50 absolute right-0 mt-2 origin-top-right w-36 rounded-lg bg-white border border-gray-200 p-1 shadow-lg text-gray-800 focus:outline-none transition duration-150 ease-out"
         >
-            <Menu as="div" className="relative inline-block text-left">
-                <div>
-                    <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md px-1 py-1 text-sm font-semibold text-gray-900">
-                        {label}
-                        <EllipsisVerticalIcon aria-hidden="true" className="h-5 w-5 text-gray-500" />
-                    </MenuButton>
-                </div>
+          {/* Edit Item */}
+          <MenuItem>
+            {({ active }) => (
+              <button
+                onClick={onEdit}
+                className={`group flex w-full items-center gap-2 rounded-md py-1.5 px-3 ${
+                  active ? 'bg-gray-100' : ''
+                }`}
+              >
+                <PencilIcon className="h-5 w-5 text-gray-800" />
+                Edit
+                <kbd className="ml-auto hidden font-sans text-xs text-gray-400 group-hover:inline">⌘E</kbd>
+              </button>
+            )}
+          </MenuItem>
 
-                <Menu.Items
-                    className={`absolute z-50 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none 
-                        ${isUpward ? 'bottom-full mb-2 origin-bottom-right' : 'top-full mt-2 origin-top-right'}`}
-                >
-                    <div className="py-1">
-                        {items.map((item, index) => (
-                            <MenuItem key={index} onClick={item.action}>
-                                <div className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    {item.label}
-                                </div>
-                            </MenuItem>
-                        ))}
-                    </div>
-                </Menu.Items>
-            </Menu>
-        </div>
-    );
+          {/* Duplicate Item */}
+          <MenuItem>
+            {({ active }) => (
+              <button
+                onClick={onDuplicate}
+                className={`group flex w-full items-center gap-2 rounded-md py-1.5 px-3 ${
+                  active ? 'bg-gray-100' : ''
+                }`}
+              >
+                <Square2StackIcon className="h-5 w-5 text-gray-800" />
+                Duplicate
+                <kbd className="ml-auto hidden font-sans text-xs text-gray-400 group-hover:inline">⌘D</kbd>
+              </button>
+            )}
+          </MenuItem>
+
+          {/* Divider */}
+          <div className="my-1 h-px bg-gray-200" />
+
+          {/* Delete Item */}
+          <MenuItem>
+            {({ active }) => (
+              <button
+                onClick={onDelete}
+                className={`group flex w-full items-center gap-2 rounded-md py-1.5 px-3 ${
+                  active ? 'bg-red-100' : ''
+                }`}
+              >
+                <TrashIcon className="h-5 w-5 text-red-500" />
+                Delete
+                <kbd className="ml-auto hidden font-sans text-xs text-red-400 group-hover:inline">⌘D</kbd>
+              </button>
+            )}
+          </MenuItem>
+        </MenuItems>
+      </Menu>
+    </div>
+  );
 }

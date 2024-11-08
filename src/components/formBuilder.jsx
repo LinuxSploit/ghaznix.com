@@ -46,12 +46,23 @@ const FormBuilder = () => {
         }
     };
 
+    // const moveSlide = (fromIndex, toIndex) => {
+    //     const updatedSlides = Array.from(Slides);
+    //     const [movedSlide] = updatedSlides.splice(fromIndex, 1);
+    //     updatedSlides.splice(toIndex, 0, movedSlide);
+    //     SetSlides(updatedSlides);
+    // };
+
     const moveSlide = (fromIndex, toIndex) => {
-        const updatedSlides = Array.from(Slides);
-        const [movedSlide] = updatedSlides.splice(fromIndex, 1);
-        updatedSlides.splice(toIndex, 0, movedSlide);
-        SetSlides(updatedSlides);
+        if (fromIndex === toIndex) return;  // Prevent no-op if the indexes are the same
+    
+        const updatedSlides = [...Slides];  // Create a shallow copy to avoid direct mutation
+        const [movedSlide] = updatedSlides.splice(fromIndex, 1);  // Remove the item from fromIndex
+        updatedSlides.splice(toIndex, 0, movedSlide);  // Insert the item into the new position
+    
+        SetSlides(updatedSlides);  // Update the state with the new array
     };
+    
 
     return (
         <div className='h-screen text-sm' onClick={closeAddContainer}>
@@ -125,10 +136,10 @@ const FormBuilder = () => {
                     )}
 
                     {/* inputs container */}
-                    <div className='' style={{ height: 'calc(100% - 3.5rem - 3.5rem)' }}>
+                    <div className='overflow-y-auto overflow-x-clip' style={{ height: 'calc(100% - 3.5rem - 3.5rem)' }}>
 
                         {/* Search Inputs */}
-                        <div className='border-b border-gray-200 px-2 py-0 flex justify-between items-center'>
+                        <div className='h-8 border-b border-gray-200 px-2 py-0 flex justify-between items-center'>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" stroke='#616161' strokeLinejoin="round" strokeWidth="2"
@@ -136,7 +147,7 @@ const FormBuilder = () => {
                             </svg>
 
 
-                            <input type="search" value={SearchSlideText} onChange={(e)=>{SetSearchSlideText(e.target.value)}} className="w-full ps-2 py-1 text-base text-gray-800 rounded-full focus:outline-none"
+                            <input type="search" value={SearchSlideText} onChange={(e)=>{SetSearchSlideText(e.target.value)}} className="w-full ps-2 text-base text-gray-800 rounded-full focus:outline-none"
                                 placeholder="search" x-model="search" />
                         </div>
 
@@ -162,10 +173,10 @@ const FormBuilder = () => {
 
                         {/* Draggable Slides List */}
                         <DndProvider backend={HTML5Backend}>
-                            <div className='dragable-slides transition-opacity duration-1000'>
+                            <div className='dragable-slides transition-opacity duration-1000' >
                                 
                                 {FilteredSlides.length==0?
-                                    <div className="text-gray-500 text-center w-full py-2 select-none">No results found.</div>
+                                    <div className="text-gray-500 text-center w-full py-2 select-none">No Content</div>
                                 :
                                 FilteredSlides.map((slide, index) => (
                                     <Slide
@@ -205,11 +216,14 @@ const FormBuilder = () => {
                 </div>
 
                 {/* main window */}
-                <div className='-z-50' style={{ width: 'calc(100% - 12rem - 12rem - 3.5rem)' }}>
+                <div className='-z-50 ' style={{ width: 'calc(100% - 12rem - 12rem - 3.5rem)' }}>
 
                     {/* Main content */}
-                    <div className='bg-gray-200 p-10 flex justify-center items-center' style={{ height: 'calc(100%)' }}>
-                        <div className='bg-white min-h-96 min-w-96 ' style={{ maxWidth: '800px' }}>
+                    <div className='h-full bg-gray-200 p-10 flex justify-center items-center'>
+                        <div className='bg-white w-auto aspect-[16/9]' style={{
+                            height:'calc(100vh - 8rem)',
+                            maxWidth:'calc(100vw - 3.5rem - 12rem - 12rem - 4rem)'
+                        }}>
                             {/* add form items here below */}
                         </div>
                     </div>

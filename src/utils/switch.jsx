@@ -16,13 +16,13 @@ function ToggleSwitch({ label, onChange }) {
                     id={label}
                     checked={isChecked}
                     onChange={handleToggle}
-                    className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition duration-200 ease-in-out"
-                    style={{ right: isChecked ? '0' : 'auto', borderColor: isChecked ? '#68D391' : '' }}
+                    className={`toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 ${isChecked?'border-gray-500':'border-slate-300'} appearance-none cursor-pointer transition duration-200 ease-in-out`}
+                    style={{ right: isChecked ? '0' : 'auto' }}
                 />
                 <label
                     htmlFor={label}
                     className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition duration-200 ease-in-out ${
-                        isChecked ? 'bg-green-400' : 'bg-gray-300'
+                        isChecked ? 'bg-gray-800' : 'bg-gray-300'
                     }`}
                 ></label>
             </div>
